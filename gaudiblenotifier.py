@@ -33,7 +33,7 @@ def main():
     params = ap.parse_args()
 
     logging.basicConfig(
-        datefmt='%H:%m:%S',
+        datefmt='%H:%M:%S',
         format='%(asctime)s %(levelname)5s - %(message)s',
         level='DEBUG' if params.debug else 'INFO',
         stream=sys.stdout,
