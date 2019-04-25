@@ -2,6 +2,8 @@
 
 > Single-file program that makes notifications audible for Gnome.
 
+![screenshot](/screenshot.png)
+
 ## Why?
 
 I got tired of missed meetings because Evolution doesn't play audio
