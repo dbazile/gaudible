@@ -19,8 +19,9 @@ INTERFACE_FREEDESKTOP = 'org.freedesktop.Notifications'
 INTERFACE_GTK         = 'org.gtk.Notifications'
 METHOD_FREEDESKTOP    = 'Notify'
 METHOD_GTK            = 'AddNotification'
+ORIGIN_EVOLUTION      = 'org.gnome.Evolution-alarm-notify'
 
-LOG = logging.getLogger('audible_reminders')
+LOG = logging.getLogger('gaudiblenotifier')
 
 
 def main():
@@ -57,6 +58,8 @@ def main():
     LOG.debug('Adding message handler')
     attach_message_handler(bus, audio_player)
 
+    LOG.info('ONLINE')
+
     loop = MainLoop()
     try:
         loop.run()
@@ -68,6 +71,10 @@ def attach_message_handler(bus, audio_player):
     """
     :type bus:          SessionBus
     :type audio_player: AudioPlayer
+
+    References:
+    - https://developer.gnome.org/notification-spec/
+    - https://wiki.gnome.org/Projects/GLib/GNotification
     """
 
     def on_notify(_, msg):
@@ -75,11 +82,16 @@ def attach_message_handler(bus, audio_player):
             method = msg.get_member()
             interface = msg.get_interface()
             args = msg.get_args_list()
+            origin = str(args[0])
 
-            if interface == INTERFACE_GTK and method == METHOD_GTK:
-                # TODO -- only listen to Evolution reminders; this might get noisy
+            args = [str(o) for o in args]
+
+            if interface == INTERFACE_GTK \
+                    and method == METHOD_GTK \
+                    and origin == ORIGIN_EVOLUTION:
                 pass
-            elif interface == INTERFACE_FREEDESKTOP and method == METHOD_FREEDESKTOP:
+            elif interface == INTERFACE_FREEDESKTOP \
+                    and method == METHOD_FREEDESKTOP:
                 pass
             else:
                 LOG.debug('DROP: \033[2m%s:%s\033[0m (args=%s)', interface, method, args)
