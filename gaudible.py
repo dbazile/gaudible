@@ -21,7 +21,7 @@ METHOD_FREEDESKTOP    = 'Notify'
 METHOD_GTK            = 'AddNotification'
 ORIGIN_EVOLUTION      = 'org.gnome.Evolution-alarm-notify'
 
-LOG = logging.getLogger('gaudiblenotifier')
+LOG = logging.getLogger('gaudible')
 
 
 def main():

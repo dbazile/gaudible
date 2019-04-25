@@ -1,4 +1,4 @@
-# gaudiblenotifier
+# gaudible
 
 > Single-file program that makes notifications audible for Gnome.
 
