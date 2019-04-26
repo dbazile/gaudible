@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -xe
+set -x +e
 
 # Simulate regular-old notification
 notify-send whee
@@ -17,3 +17,22 @@ gdbus call \
 	org.gnome.Evolution-alarm-notify \
 	system-calendar \
 	'{}'
+
+sleep 2.5
+
+# Simulate Evolution notification (legacy)
+gdbus call \
+	--session \
+	--dest org.freedesktop.Notifications \
+	--object-path /org/freedesktop/Notifications \
+	--method org.freedesktop.Notifications.Notify \
+	--timeout 1 \
+	-- \
+	'Evolution Reminders' \
+	0 \
+	system-calendar \
+	'test-summary' \
+	'test-body' \
+	'[]' \
+	'{}' \
+	-1

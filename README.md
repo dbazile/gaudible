@@ -4,6 +4,14 @@
 
 ![screenshot](/screenshot.png)
 
+## Usage
+
+    # all filters
+    ./gaudible.py
+    
+    # only specific filters
+    ./gaudible.py --filter calendar --filter calendar-legacy
+
 ## Why?
 
 I got tired of missed meetings because Evolution doesn't play audio
