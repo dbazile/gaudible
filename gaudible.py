@@ -19,6 +19,7 @@ DEFAULT_FILE   = '/usr/share/sounds/freedesktop/stereo/bell.oga'
 FILTERS = {
     'calendar':        ('org.gtk.Notifications', 'AddNotification', 'org.gnome.Evolution-alarm-notify'),
     'calendar-legacy': ('org.freedesktop.Notifications', 'Notify', 'Evolution Reminders'),
+    'firefox':         ('org.freedesktop.Notifications', 'Notify', 'Firefox'),
     'test':            ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
 }
 
