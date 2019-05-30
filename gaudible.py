@@ -90,8 +90,6 @@ def attach_message_handler(bus, audio_player, filter_keys):
             args = msg.get_args_list()
             origin = str(args[0])
 
-            args = [str(o) for o in args]
-
             for filter_key in filter_keys:
                 filter_interface, filter_method, filter_origin = FILTERS[filter_key]
 
