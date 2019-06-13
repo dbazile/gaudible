@@ -2,7 +2,7 @@
 
 set -xe
 
-SOUND_FILE=$HOME/.local/share/sounds/Dave/uncategorized/twinkle.oga
+SOUND_FILE=$HOME/.local/share/sounds/Dave/starlabs/dialog-warning.oga
 
 
 cd "$(dirname $(realpath $0))"
@@ -19,7 +19,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		Exec=/home/ddb/bin/gaudible --file '$SOUND_FILE'
 		Hidden=false
 		NoDisplay=false
-		Terminal=true
+		Terminal=false
 		X-GNOME-Autostart-enabled=true
 	EOT
 	exit
