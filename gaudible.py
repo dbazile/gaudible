@@ -10,7 +10,7 @@ import time
 
 from dbus import SessionBus
 from dbus.mainloop.glib import DBusGMainLoop
-from glib import MainLoop
+from gi.repository import GLib
 
 
 DEFAULT_PLAYER = '/usr/bin/paplay'
@@ -65,7 +65,7 @@ def main():
 
     LOG.info('ONLINE')
 
-    loop = MainLoop()
+    loop = GLib.MainLoop()
     try:
         loop.run()
     except KeyboardInterrupt:

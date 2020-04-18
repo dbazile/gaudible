@@ -8,7 +8,7 @@
 
     # all filters
     ./gaudible.py
-    
+
     # only specific filters
     ./gaudible.py --filter calendar --filter calendar-legacy
 
@@ -27,6 +27,6 @@ thing...
 All this does is listen for common notification traffic patterns on
 DBus.
 
-The only package dependencies are Python 2 and `pulseaudio-utils`,
-both of which have a high chance of being installed by default on
-Fedora and CentOS.
+The only package dependencies are Python 2, PyGObject and
+`pulseaudio-utils`, all of which have a high chance of being installed
+by default on Fedora and CentOS.
