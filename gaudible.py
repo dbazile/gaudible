@@ -13,8 +13,9 @@ from dbus.mainloop.glib import DBusGMainLoop
 from gi.repository import GLib
 
 
-DEFAULT_PLAYER = '/usr/bin/paplay'
-DEFAULT_FILE   = '/usr/share/sounds/freedesktop/stereo/bell.oga'
+DEFAULT_PLAYER  = '/usr/bin/paplay'
+DEFAULT_FILE    = '/usr/share/sounds/freedesktop/stereo/bell.oga'
+DEFAULT_RATE_MS = 200
 
 FILTERS = {
     'calendar':        ('org.gtk.Notifications', 'AddNotification', 'org.gnome.Evolution-alarm-notify'),
@@ -23,7 +24,7 @@ FILTERS = {
     'test':            ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
 }
 
-LOG = logging.getLogger('gaudible')
+LOG = logging.getLogger('gaudible')  # type: logging.Logger
 
 
 def main():
@@ -32,6 +33,8 @@ def main():
     ap.add_argument('--file', default=DEFAULT_FILE)
     ap.add_argument('--filter', dest='filters', action='append', choices=FILTERS.keys())
     ap.add_argument('--player', default=DEFAULT_PLAYER)
+    ap.add_argument('--rate-ms', type=int, default=DEFAULT_RATE_MS)
+
     params = ap.parse_args()
 
     logging.basicConfig(
@@ -58,7 +61,7 @@ def main():
     subscribe_to_messages(bus, filter_keys)
 
     LOG.debug('Creating audio player')
-    audio_player = AudioPlayer(params.player, params.file)
+    audio_player = AudioPlayer(params.player, params.file, params.rate_ms)
 
     LOG.debug('Adding message handler')
     attach_message_handler(bus, audio_player, filter_keys)
@@ -119,7 +122,7 @@ def subscribe_to_messages(bus, filter_keys):
     for k in filter_keys:
         interface, method, origin = FILTERS[k]
         rule = 'type=method_call, interface=%s, member=%s' % (interface, method)
-        LOG.info('Subscribe: \033[1m%-15s\033[0m (rule=%s, origin=%s)', k, repr(rule), repr(origin))
+        LOG.info('Subscribe: \033[1m%-15s\033[0m (rule=%r, origin=%r)', k, rule, origin)
         rules.append(rule)
 
     proxy = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
@@ -127,11 +130,16 @@ def subscribe_to_messages(bus, filter_keys):
 
 
 class AudioPlayer:
-    def __init__(self, player, file_):
+    def __init__(self, player, file_, rate_ms):
         self._player = player
         self._file = file_
+        self._rate_ms = max(0.01, rate_ms) / 1000
+        self._quiet_until = -1
 
     def play(self):
+        if self._enforce_rate_limit():
+            return
+
         t = threading.Thread(target=self._play, name='%s:%s' % (self.__class__.__name__, time.time()))
         t.start()
 
@@ -146,6 +154,21 @@ class AudioPlayer:
         cmd = [self._player, self._file]
         LOG.debug('EXEC: %s (thread=%s)', cmd, threading.current_thread().name)
         subprocess.check_call(cmd)
+
+    def _enforce_rate_limit(self):
+        now = time.time()
+
+        if now <= self._quiet_until:
+            LOG.debug('audioplayer: in quiet period for another %.2f seconds',
+                      self._quiet_until - now)
+            return True
+
+        self._quiet_until = now + self._rate_ms
+
+        LOG.debug('audioplayer: setting quiet period: now=%.2f quiet_until=%.2f rate_ms=%.2f',
+                  now, self._quiet_until, self._rate_ms)
+
+        return False
 
 
 if __name__ == '__main__':
