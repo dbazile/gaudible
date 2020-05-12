@@ -16,7 +16,7 @@ from gi.repository import GLib
 
 DEFAULT_PLAYER  = '/usr/bin/paplay'
 DEFAULT_FILE    = '/usr/share/sounds/freedesktop/stereo/bell.oga'
-DEFAULT_RATE_MS = 200
+DEFAULT_RATE_MS = 500
 
 FILTERS = {
     'calendar':        ('org.gtk.Notifications', 'AddNotification', 'org.gnome.Evolution-alarm-notify'),
@@ -134,12 +134,7 @@ def subscribe_to_messages(bus, filter_keys):
 
 
 def truncate_repr(o):
-    value = repr(o)
-
-    if not LOG.isEnabledFor(logging.DEBUG):
-        value = PATTERN_BLOB.sub('<binary blob>', value)
-
-    return value
+    return PATTERN_BLOB.sub('<binary blob>', repr(o))
 
 
 class AudioPlayer:
