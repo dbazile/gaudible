@@ -3,6 +3,7 @@
 import argparse
 import logging
 import os
+import re
 import subprocess
 import sys
 import threading
@@ -21,8 +22,10 @@ FILTERS = {
     'calendar':        ('org.gtk.Notifications', 'AddNotification', 'org.gnome.Evolution-alarm-notify'),
     'calendar-legacy': ('org.freedesktop.Notifications', 'Notify', 'Evolution Reminders'),
     'firefox':         ('org.freedesktop.Notifications', 'Notify', 'Firefox'),
-    'test':            ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
+    'notify-send':     ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
 }
+
+PATTERN_BLOB = re.compile(r'\[(dbus.Byte\(\d+\)(, )?){5,}\]')
 
 LOG = logging.getLogger('gaudible')  # type: logging.Logger
 
@@ -97,7 +100,8 @@ def attach_message_handler(bus, audio_player, filter_keys):
                 filter_interface, filter_method, filter_origin = FILTERS[filter_key]
 
                 if filter_interface == interface and filter_method == method and filter_origin == origin:
-                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, args=%s)', filter_key, interface, method, args)
+                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, args=%s)',
+                             filter_key, interface, method, truncate_repr(args))
                     audio_player.play()
                     return
 
@@ -127,6 +131,15 @@ def subscribe_to_messages(bus, filter_keys):
 
     proxy = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
     proxy.BecomeMonitor(rules, 0, dbus_interface='org.freedesktop.DBus.Monitoring')
+
+
+def truncate_repr(o):
+    value = repr(o)
+
+    if not LOG.isEnabledFor(logging.DEBUG):
+        value = PATTERN_BLOB.sub('<binary blob>', value)
+
+    return value
 
 
 class AudioPlayer:

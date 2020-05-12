@@ -39,8 +39,8 @@ EOT
 
 # Enable systemd service
 systemctl --user daemon-reload
-systemctl --user enable gaudible
-systemctl --user start gaudible
+systemctl --user stop gaudible
+systemctl --user enable --now gaudible
 
 # Check if it's running
-journalctl --user -u gaudible
+journalctl --user -u gaudible --since '-1min'
