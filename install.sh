@@ -1,8 +1,14 @@
 #!/bin/bash
+
+set -xe
+
+SOUND_FILE="${SOUND_FILE:-$HOME/.local/share/sounds/Dave/starlabs/dialog-warning.oga}"
+
+
 cd "$(dirname $(realpath $0))"
 
 # Move the executable into place
-mkdir ~/bin
+mkdir -p ~/bin
 cp gaudible.py ~/bin/gaudible
 
 # CentOS 7 doesn't support systemctl --user
@@ -11,7 +17,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		[Desktop Entry]
 		Name=gaudible
 		Type=Application
-		Exec=/home/ddb/bin/gaudible --filter calendar
+		Exec=/home/ddb/bin/gaudible --file '$SOUND_FILE'
 		Hidden=false
 		NoDisplay=false
 		Terminal=false
@@ -24,7 +30,7 @@ fi
 mkdir -p ~/.config/systemd/user
 cat <<-EOT > ~/.config/systemd/user/gaudible.service
 	[Service]
-	ExecStart=$HOME/bin/gaudible --filter calendar
+	ExecStart=$HOME/bin/gaudible --file "$SOUND_FILE"
 	Restart=always
 	NoNewPrivileges=true
 
