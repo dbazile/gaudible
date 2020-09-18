@@ -2,12 +2,13 @@
 
 set -xe
 
-SOUND_FILE=$HOME/.local/share/sounds/Dave/starlabs/dialog-warning.oga
+SOUND_FILE="${SOUND_FILE:-$HOME/.local/share/sounds/Dave/starlabs/dialog-warning.oga}"
 
 
 cd "$(dirname $(realpath $0))"
 
 # Move the executable into place
+mkdir -p ~/bin
 cp gaudible.py ~/bin/gaudible
 
 # CentOS 7 doesn't support systemctl --user
