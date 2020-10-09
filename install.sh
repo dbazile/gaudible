@@ -2,7 +2,7 @@
 
 set -xe
 
-SOUND_FILE="${SOUND_FILE:-$HOME/.local/share/sounds/Dave/starlabs/dialog-warning.oga}"
+SOUND_FILE="${SOUND_FILE:-$HOME/.local/share/sounds/Dave/uncategorized/me-too.oga}"
 
 
 cd "$(dirname $(realpath $0))"
