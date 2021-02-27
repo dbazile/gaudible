@@ -2,8 +2,8 @@
 
 set -xe
 
-SOUND_DEFAULT="${SOUND_DEFAULT:-$HOME/.local/share/sounds/Dave/uncategorized/appointed.oga}"
-SOUND_CALENDAR="${SOUND_CALENDAR:-$HOME/.local/share/sounds/Dave/uncategorized/solemn.oga}"
+SOUND_DEFAULT="${SOUND_DEFAULT:-$HOME/.local/share/sounds/__custom/uncategorized/appointed.oga}"
+SOUND_CALENDAR="${SOUND_CALENDAR:-$HOME/.local/share/sounds/__custom/uncategorized/solemn.oga}"
 
 
 cd "$(dirname $(realpath $0))"
