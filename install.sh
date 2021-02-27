@@ -2,7 +2,8 @@
 
 set -xe
 
-SOUND_FILE="${SOUND_FILE:-$HOME/.local/share/sounds/Dave/uncategorized/me-too.oga}"
+SOUND_DEFAULT="${SOUND_DEFAULT:-$HOME/.local/share/sounds/Dave/uncategorized/appointed.oga}"
+SOUND_CALENDAR="${SOUND_CALENDAR:-$HOME/.local/share/sounds/Dave/uncategorized/solemn.oga}"
 
 
 cd "$(dirname $(realpath $0))"
@@ -17,7 +18,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		[Desktop Entry]
 		Name=gaudible
 		Type=Application
-		Exec=/home/ddb/bin/gaudible --sound '$SOUND_FILE'
+		Exec=/home/ddb/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
 		Hidden=false
 		NoDisplay=false
 		Terminal=false
@@ -30,7 +31,7 @@ fi
 mkdir -p ~/.config/systemd/user
 cat <<-EOT > ~/.config/systemd/user/gaudible.service
 	[Service]
-	ExecStart=$HOME/bin/gaudible --sound "$SOUND_FILE"
+	ExecStart=$HOME/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
 	Restart=always
 	NoNewPrivileges=true
 
