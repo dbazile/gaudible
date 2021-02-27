@@ -90,22 +90,31 @@ def attach_message_handler(bus, audio_player, filter_keys):
     """
 
     def on_message(_, msg):
+        """
+        :type msg: dbus.lowlevel.SignalMessage
+        """
+
         try:
+            sender = msg.get_sender()
+            dest = msg.get_destination()
             interface = msg.get_interface()
             method = msg.get_member()
             args = msg.get_args_list()
             origin = str(args[0])
 
             for filter_key in filter_keys:
-                filter_interface, filter_method, filter_origin = FILTERS[filter_key]
+                filter_interface, filter_method, _, filter_origin = FILTERS[filter_key]
 
                 if filter_interface == interface and filter_method == method and filter_origin == origin:
-                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, args=%s)',
-                             filter_key, interface, method, truncate_repr(args))
+
+                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, sender=%s, dest=%s, args=%s)',
+                             filter_key, interface, method, sender, dest, truncate_repr(args))
+
                     audio_player.play()
                     return
 
-            LOG.debug('DROP: \033[2m%s:%s\033[0m (args=%s)', interface, method, args)
+            LOG.debug('DROP: \033[2m%s:%s\033[0m (sender=%s, dest=%s, args=%s)',
+                      interface, method, sender, dest, args)
 
         except Exception as e:
             LOG.error('Something bad happened', exc_info=e)
@@ -116,7 +125,7 @@ def attach_message_handler(bus, audio_player, filter_keys):
 def subscribe_to_messages(bus, filter_keys):
     """
     :type bus:         SessionBus
-    :type filter_keys: tuple
+    :type filter_keys: [str]
 
     References:
     - https://dbus.freedesktop.org/doc/dbus-specification.html#message-bus-routing-match-rules
@@ -125,11 +134,19 @@ def subscribe_to_messages(bus, filter_keys):
     rules = []
     for k in filter_keys:
         interface, method, origin = FILTERS[k]
+
         rule = 'type=method_call, interface=%s, member=%s' % (interface, method)
+
+        # Prevent messages forwarded by org.freedesktop.Notifications to
+        # org.gtk.Notifications from showing up in the stream twice
+        if interface == 'org.freedesktop.Notifications':
+            rule = 'type=method_call, interface=%s, member=%s, sender=%s' % (interface, method, interface)
+
         LOG.info('Subscribe: \033[1m%-15s\033[0m (rule=%r, origin=%r)', k, rule, origin)
+
         rules.append(rule)
 
-    proxy = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')
+    proxy = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')  # type: dbus.proxies.ProxyObject
     proxy.BecomeMonitor(rules, 0, dbus_interface='org.freedesktop.DBus.Monitoring')
 
 
