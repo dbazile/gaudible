@@ -155,7 +155,7 @@ def subscribe_to_messages(bus, filter_keys):
     - https://dbus.freedesktop.org/doc/dbus-specification.html#message-bus-routing-match-rules
     """
 
-    rules = []
+    rules = set()
     for k in filter_keys:
         interface, method, origin = FILTERS[k]
 
@@ -168,7 +168,7 @@ def subscribe_to_messages(bus, filter_keys):
 
         LOG.info('Subscribe: \033[1m%-15s\033[0m (rule=%r, origin=%r)', k, rule, origin)
 
-        rules.append(rule)
+        rules.add(rule)
 
     proxy = bus.get_object('org.freedesktop.DBus', '/org/freedesktop/DBus')  # type: dbus.proxies.ProxyObject
     proxy.BecomeMonitor(rules, 0, dbus_interface='org.freedesktop.DBus.Monitoring')
