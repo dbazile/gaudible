@@ -17,7 +17,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		[Desktop Entry]
 		Name=gaudible
 		Type=Application
-		Exec=/home/ddb/bin/gaudible --file '$SOUND_FILE'
+		Exec=/home/ddb/bin/gaudible --sound '$SOUND_FILE'
 		Hidden=false
 		NoDisplay=false
 		Terminal=false
@@ -30,7 +30,7 @@ fi
 mkdir -p ~/.config/systemd/user
 cat <<-EOT > ~/.config/systemd/user/gaudible.service
 	[Service]
-	ExecStart=$HOME/bin/gaudible --file "$SOUND_FILE"
+	ExecStart=$HOME/bin/gaudible --sound "$SOUND_FILE"
 	Restart=always
 	NoNewPrivileges=true
 

@@ -15,7 +15,7 @@ from gi.repository import GLib, Gio
 
 
 DEFAULT_PLAYER  = '/usr/bin/paplay'
-DEFAULT_FILE    = '/usr/share/sounds/freedesktop/stereo/bell.oga'
+DEFAULT_SOUND   = '/usr/share/sounds/freedesktop/stereo/bell.oga'
 DEFAULT_RATE_MS = 500
 
 FILTERS = {
@@ -27,17 +27,17 @@ FILTERS = {
 
 GNOME_SETTINGS    = Gio.Settings(schema='org.gnome.desktop.notifications')
 PATTERN_BLOB      = re.compile(r'\[(dbus.Byte\(\d+\)(, )?){5,}\]')
+PATTERN_SOUNDSPEC = re.compile(r'^(?P<name>[\w\-]+):(?P<path>.*)$')
 LOG               = logging.getLogger('gaudible')  # type: logging.Logger
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--debug', action='store_true')
-    ap.add_argument('--file', default=DEFAULT_FILE)
+    ap.add_argument('--sound', dest='sound_spec', action='append', help='registers a sound for a specific filter with format <filter-name>:<file-path> or use format <file-path> for everything')
     ap.add_argument('--filter', dest='filters', action='append', choices=FILTERS.keys())
     ap.add_argument('--player', default=DEFAULT_PLAYER)
     ap.add_argument('--rate-ms', type=int, default=DEFAULT_RATE_MS)
-
     params = ap.parse_args()
 
     logging.basicConfig(
@@ -47,14 +47,38 @@ def main():
         stream=sys.stdout,
     )
 
-    LOG.debug('Testing for player and audio file')
+    LOG.debug('build sound registry: %s', params.sound_spec)
+
+    sounds = {'*': DEFAULT_SOUND}
+    if params.sound_spec:
+        for spec in params.sound_spec:
+            spec = spec.strip()  # type: str
+            m = PATTERN_SOUNDSPEC.match(spec)
+            if m:
+                key = m.group('name').lower()
+                value = m.group('path')
+
+                if key not in FILTERS:
+                    ap.error('unknown filter %r in sound spec %r' % (key, spec))
+                    return
+            else:
+                key = '*'
+                value = spec
+
+            if not os.access(value, os.R_OK):
+                ap.error('audio file %r cannot be read in sound spec %r' % (value, spec))
+                return
+
+            sounds[key] = value
+
+    LOG.debug('sound registry: %s', sounds)
+
+    LOG.debug('check audio player')
 
     if not os.access(params.player, os.R_OK | os.X_OK):
-        ap.error('player does not exist or is not executable: %s' % params.player)
-    if not os.access(params.file, os.R_OK):
-        ap.error('audio file does not exist or is not readable: %s' % params.file)
+        ap.error('player %r does not exist or is not executable' % (params.player,))
 
-    LOG.debug('Initializing')
+    LOG.debug('initialize dbus')
 
     DBusGMainLoop(set_as_default=True)
     bus = SessionBus()
@@ -62,11 +86,7 @@ def main():
     filter_keys = tuple(sorted(set(params.filters if params.filters else FILTERS.keys())))
 
     subscribe_to_messages(bus, filter_keys)
-
-    LOG.debug('Creating audio player')
-    audio_player = AudioPlayer(params.player, params.file, params.rate_ms)
-
-    LOG.debug('Adding message handler')
+    audio_player = AudioPlayer(params.player, sounds, params.rate_ms)
     attach_message_handler(bus, audio_player, filter_keys)
 
     LOG.info('ONLINE')
@@ -95,32 +115,30 @@ def attach_message_handler(bus, audio_player, filter_keys):
         """
 
         try:
-            sender = msg.get_sender()
-            dest = msg.get_destination()
             interface = msg.get_interface()
             method = msg.get_member()
             args = msg.get_args_list()
             origin = str(args[0])
 
             for filter_key in filter_keys:
-                filter_interface, filter_method, _, filter_origin = FILTERS[filter_key]
+                filter_interface, filter_method, filter_origin = FILTERS[filter_key]
 
                 if filter_interface == interface and filter_method == method and filter_origin == origin:
 
                     # Suppress audio if we're in 'do not disturb' mode
                     if not GNOME_SETTINGS.get_boolean('show-banners'):
-                        LOG.info('SUPPRESS: \033[1m%-15s\033[0m (from=%s:%s, sender=%s, dest=%s, args=%s)',
-                                 filter_key, interface, method, sender, dest, truncate_repr(args))
+                        LOG.info('SUPPRESS: \033[1m%-15s\033[0m (from=%s:%s, args=%s)',
+                                 filter_key, interface, method, truncate_repr(args))
                         return
 
-                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, sender=%s, dest=%s, args=%s)',
-                             filter_key, interface, method, sender, dest, truncate_repr(args))
+                    LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, args=%s)',
+                             filter_key, interface, method, truncate_repr(args))
 
-                    audio_player.play()
+                    audio_player.play(filter_key)
                     return
 
-            LOG.debug('DROP: \033[2m%s:%s\033[0m (sender=%s, dest=%s, args=%s)',
-                      interface, method, sender, dest, args)
+            LOG.debug('DROP: \033[2m%s:%s\033[0m (args=%s)',
+                      interface, method, args)
 
         except Exception as e:
             LOG.error('Something bad happened', exc_info=e)
@@ -161,17 +179,17 @@ def truncate_repr(o):
 
 
 class AudioPlayer:
-    def __init__(self, player, file_, rate_ms):
+    def __init__(self, player, files, rate_ms):
         self._player = player
-        self._file = file_
+        self._files = files  # type: dict
         self._rate_ms = max(0.01, rate_ms) / 1000
         self._quiet_until = -1
 
-    def play(self):
+    def play(self, name):
         if self._enforce_rate_limit():
             return
 
-        t = threading.Thread(target=self._play, name='%s:%s' % (self.__class__.__name__, time.time()))
+        t = threading.Thread(target=self._play, args=[name], name='%s:%s' % (self.__class__.__name__, time.time()))
         t.start()
 
         # HACK: Without this, sometimes the first execution gets deferred until
@@ -181,8 +199,9 @@ class AudioPlayer:
 
         return t
 
-    def _play(self):
-        cmd = [self._player, self._file]
+    def _play(self, name):
+        sound_file = self._files.get(name, self._files.get('*'))
+        cmd = [self._player, sound_file]
         LOG.debug('EXEC: %s (thread=%s)', cmd, threading.current_thread().name)
         subprocess.check_call(cmd)
 

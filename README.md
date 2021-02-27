@@ -6,11 +6,19 @@
 
 ## Usage
 
-    # all filters
-    ./gaudible.py
+```bash
+# all filters
+./gaudible.py
 
-    # only specific filters
-    ./gaudible.py --filter calendar --filter calendar-legacy
+# only specific filters
+./gaudible.py --filter calendar --filter calendar-legacy
+
+# register specific sounds for specific filters
+./gaudible.py \
+    --sound calendar:calendar.oga \
+    --sound firefox:browser.oga   \
+    --sound default-sound.oga        # sound for everything else
+```
 
 ## Why?
 
@@ -30,3 +38,20 @@ DBus.
 The only package dependencies are Python 2, PyGObject and
 `pulseaudio-utils`, all of which have a high chance of being installed
 by default on Fedora and CentOS.
+
+## Reference
+
+```bash
+# see gdbus usage
+cat test.py
+
+# listen for dbus messages
+dbus-monitor 'type=method_call, interface=org.gtk.Notifications, member=AddNotification' \
+             'type=method_call, interface=org.freedesktop.Notifications, member=Notify'
+
+# identify dbus unique addresses
+qdbus
+
+# describe dbus service methods
+qdbus org.gtk.Notifications /org/gtk/Notifications
+```
