@@ -11,7 +11,7 @@ import time
 
 from dbus import SessionBus
 from dbus.mainloop.glib import DBusGMainLoop
-from gi.repository import GLib
+from gi.repository import GLib, Gio
 
 
 DEFAULT_PLAYER  = '/usr/bin/paplay'
@@ -25,9 +25,9 @@ FILTERS = {
     'notify-send':     ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
 }
 
-PATTERN_BLOB = re.compile(r'\[(dbus.Byte\(\d+\)(, )?){5,}\]')
-
-LOG = logging.getLogger('gaudible')  # type: logging.Logger
+GNOME_SETTINGS    = Gio.Settings(schema='org.gnome.desktop.notifications')
+PATTERN_BLOB      = re.compile(r'\[(dbus.Byte\(\d+\)(, )?){5,}\]')
+LOG               = logging.getLogger('gaudible')  # type: logging.Logger
 
 
 def main():
@@ -106,6 +106,12 @@ def attach_message_handler(bus, audio_player, filter_keys):
                 filter_interface, filter_method, _, filter_origin = FILTERS[filter_key]
 
                 if filter_interface == interface and filter_method == method and filter_origin == origin:
+
+                    # Suppress audio if we're in 'do not disturb' mode
+                    if not GNOME_SETTINGS.get_boolean('show-banners'):
+                        LOG.info('SUPPRESS: \033[1m%-15s\033[0m (from=%s:%s, sender=%s, dest=%s, args=%s)',
+                                 filter_key, interface, method, sender, dest, truncate_repr(args))
+                        return
 
                     LOG.info('RECEIVE: \033[1m%-15s\033[0m (from=%s:%s, sender=%s, dest=%s, args=%s)',
                              filter_key, interface, method, sender, dest, truncate_repr(args))
