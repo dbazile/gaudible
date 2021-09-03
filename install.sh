@@ -18,7 +18,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		[Desktop Entry]
 		Name=gaudible
 		Type=Application
-		Exec=/home/ddb/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
+		Exec=$HOME/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
 		Hidden=false
 		NoDisplay=false
 		Terminal=false
@@ -45,4 +45,4 @@ systemctl --user stop gaudible
 systemctl --user enable --now gaudible
 
 # Check if it's running
-journalctl --user -u gaudible --since '-1min'
+journalctl --user -u gaudible -e --since '-1min'
