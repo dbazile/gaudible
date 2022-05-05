@@ -35,9 +35,9 @@ thing...
 All this does is listen for common notification traffic patterns on
 DBus.
 
-The only package dependencies are Python 2, PyGObject and
+The only package dependencies are Python 3, PyGObject and
 `pulseaudio-utils`, all of which have a high chance of being installed
-by default on Fedora and CentOS.
+by default on Fedora 30+.
 
 ## Reference
 
