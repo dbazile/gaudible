@@ -1,4 +1,4 @@
-#!/bin/env python3
+#!/usr/bin/env python3
 
 import argparse
 import logging
@@ -23,6 +23,7 @@ FILTERS = {
     'calendar-legacy': ('org.freedesktop.Notifications', 'Notify', 'Evolution Reminders'),
     'firefox':         ('org.freedesktop.Notifications', 'Notify', 'Firefox'),
     'notify-send':     ('org.freedesktop.Notifications', 'Notify', 'notify-send'),
+    'chrome':          ('org.freedesktop.Notifications', 'Notify', 'Google Chrome'),
 }
 
 GNOME_SETTINGS    = Gio.Settings(schema='org.gnome.desktop.notifications')
