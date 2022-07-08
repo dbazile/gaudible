@@ -39,6 +39,9 @@ The only package dependencies are Python 3, PyGObject and
 `pulseaudio-utils`, all of which have a high chance of being installed
 by default on Fedora 30+.
 
+Note: `paplay`, the default player, doesn't support MP3/MP4 playback so
+either conversion or a different player is needed
+
 ## Reference
 
 ```bash
