@@ -34,17 +34,24 @@ LOG               = logging.getLogger('gaudible')  # type: logging.Logger
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('--debug', action='store_true')
+    ap.add_argument('-v', '--verbose', action='count', help='controls amount of log output (repeat for more verbosity)')
     ap.add_argument('--sound', dest='sound_spec', action='append', help='registers a sound for a specific filter with format <filter-name>:<file-path> or use format <file-path> for everything')
     ap.add_argument('--filter', dest='filters', action='append', choices=FILTERS.keys())
     ap.add_argument('--player', default=DEFAULT_PLAYER)
     ap.add_argument('--rate-ms', type=int, default=DEFAULT_RATE_MS)
+    ap.set_defaults(verbose=0)
     params = ap.parse_args()
+
+    log_level = logging.WARNING
+    if params.verbose >= 2:
+        log_level = logging.DEBUG
+    elif params.verbose >= 1:
+        log_level = logging.INFO
 
     logging.basicConfig(
         datefmt='%H:%M:%S',
         format='%(asctime)s %(levelname)5s - %(message)s',
-        level='DEBUG' if params.debug else 'INFO',
+        level=log_level,
         stream=sys.stdout,
     )
 

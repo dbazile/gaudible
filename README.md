@@ -8,13 +8,14 @@
 
 ```bash
 # all filters
-./gaudible.py
+./gaudible.py -v
 
 # only specific filters
-./gaudible.py --filter calendar --filter calendar-legacy
+./gaudible.py -v --filter calendar --filter calendar-legacy
 
 # register specific sounds for specific filters
 ./gaudible.py \
+    -v \
     --sound calendar:calendar.oga \
     --sound firefox:browser.oga   \
     --sound default-sound.oga        # sound for everything else

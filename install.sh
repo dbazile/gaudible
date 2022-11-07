@@ -18,7 +18,7 @@ if [[ "$(cat /etc/redhat-release)" =~ ^CentOS\ Linux\ release\ 7 ]]; then
 		[Desktop Entry]
 		Name=gaudible
 		Type=Application
-		Exec=$HOME/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
+		Exec=$HOME/bin/gaudible -v --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
 		Hidden=false
 		NoDisplay=false
 		Terminal=false
@@ -31,7 +31,7 @@ fi
 mkdir -p ~/.config/systemd/user
 cat <<-EOT > ~/.config/systemd/user/gaudible.service
 	[Service]
-	ExecStart=$HOME/bin/gaudible --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
+	ExecStart=$HOME/bin/gaudible -v --sound "calendar:$SOUND_CALENDAR" --sound "$SOUND_DEFAULT"
 	Restart=always
 	NoNewPrivileges=true
 
