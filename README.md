@@ -1,3 +1,11 @@
+----
+
+**Project moved to GitLab:**<br>
+**https://gitlab.com/dbazile/gaudible**
+
+----
+
+
 # gaudible
 
 > Single-file program that makes notifications audible for Gnome.
